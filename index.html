@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Manajemen Surat</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    input, textarea, select { margin: 5px; padding: 5px; width: 300px; }
+    table { border-collapse: collapse; margin-top: 20px; width: 100%; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    h2 { margin-top: 40px; }
+  </style>
+</head>
+<body>
+  <h1>Form Input Surat</h1>
+  <form id="formSurat">
+    <label>Jenis Surat:</label><br>
+    <select id="jenis" required>
+      <option value="masuk">Surat Masuk</option>
+      <option value="keluar">Surat Keluar</option>
+    </select><br>
+
+    <label>Nomor Urut:</label><br>
+    <input type="number" id="nomor_urut" required><br>
+
+    <label>Tanggal:</label><br>
+    <input type="date" id="tanggal" required><br>
+
+    <label>Nomor Surat:</label><br>
+    <input type="text" id="nomor_surat" required><br>
+
+    <label>Keterangan:</label><br>
+    <textarea id="keterangan" required></textarea><br>
+
+    <input type="hidden" id="editIndex" value="-1">
+    <button type="submit">Simpan</button>
+  </form>
+
+  <h2>Data Surat Masuk</h2>
+  <table id="tableMasuk">
+    <thead>
+      <tr>
+        <th>No</th><th>Nomor Urut</th><th>Tanggal</th><th>Nomor Surat</th><th>Keterangan</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Data Surat Keluar</h2>
+  <table id="tableKeluar">
+    <thead>
+      <tr>
+        <th>No</th><th>Nomor Urut</th><th>Tanggal</th><th>Nomor Surat</th><th>Keterangan</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const form = document.getElementById('formSurat');
+    const jenisInput = document.getElementById('jenis');
+    const nomorUrutInput = document.getElementById('nomor_urut');
+    const tanggalInput = document.getElementById('tanggal');
+    const nomorSuratInput = document.getElementById('nomor_surat');
+    const keteranganInput = document.getElementById('keterangan');
+    const editIndexInput = document.getElementById('editIndex');
+
+    const tableMasuk = document.querySelector('#tableMasuk tbody');
+    const tableKeluar = document.querySelector('#tableKeluar tbody');
+
+    let suratMasuk = JSON.parse(localStorage.getItem('suratMasuk')) || [];
+    let suratKeluar = JSON.parse(localStorage.getItem('suratKeluar')) || [];
+
+    function tampilkanData() {
+      tableMasuk.innerHTML = '';
+      suratMasuk.forEach((item, index) => {
+        tableMasuk.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.nomor_urut}</td>
+            <td>${item.tanggal}</td>
+            <td>${item.nomor_surat}</td>
+            <td>${item.keterangan}</td>
+            <td><button onclick="editData('masuk', ${index})">Edit</button></td>
+          </tr>
+        `;
+      });
+
+      tableKeluar.innerHTML = '';
+      suratKeluar.forEach((item, index) => {
+        tableKeluar.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${item.nomor_urut}</td>
+            <td>${item.tanggal}</td>
+            <td>${item.nomor_surat}</td>
+            <td>${item.keterangan}</td>
+            <td><button onclick="editData('keluar', ${index})">Edit</button></td>
+          </tr>
+        `;
+      });
+    }
+
+    function editData(jenis, index) {
+      const data = jenis === 'masuk' ? suratMasuk[index] : suratKeluar[index];
+      jenisInput.value = jenis;
+      nomorUrutInput.value = data.nomor_urut;
+      tanggalInput.value = data.tanggal;
+      nomorSuratInput.value = data.nomor_surat;
+      keteranganInput.value = data.keterangan;
+      editIndexInput.value = index;
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const data = {
+        nomor_urut: nomorUrutInput.value,
+        tanggal: tanggalInput.value,
+        nomor_surat: nomorSuratInput.value,
+        keterangan: keteranganInput.value
+      };
+
+      const jenis = jenisInput.value;
+      const editIndex = parseInt(editIndexInput.value);
+
+      if (editIndex >= 0) {
+        if (jenis === 'masuk') {
+          suratMasuk[editIndex] = data;
+          localStorage.setItem('suratMasuk', JSON.stringify(suratMasuk));
+        } else {
+          suratKeluar[editIndex] = data;
+          localStorage.setItem('suratKeluar', JSON.stringify(suratKeluar));
+        }
+        editIndexInput.value = -1;
+      } else {
+        if (jenis === 'masuk') {
+          suratMasuk.push(data);
+          localStorage.setItem('suratMasuk', JSON.stringify(suratMasuk));
+        } else {
+          suratKeluar.push(data);
+          localStorage.setItem('suratKeluar', JSON.stringify(suratKeluar));
+        }
+      }
+
+      form.reset();
+      tampilkanData();
+    });
+
+    tampilkanData();
+  </script>
+</body>
+</html>
